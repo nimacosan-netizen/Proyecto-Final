@@ -1,7 +1,7 @@
 #include <Wire.h>
 #include <MPU6050.h>
 MPU6050 mpu;
-int minPulgar = 200,  maxPulgar = 900;
+int minPulgar = 100,  maxPulgar = 900;
 int minIndice = 200,  maxIndice = 900;
 int minMedio = 200,   maxMedio = 900;
 int minAnular = 200,  maxAnular = 900;
