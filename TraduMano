@@ -1,0 +1,113 @@
+#include <Wire.h>
+#include <MPU6050.h>
+MPU6050 mpu;
+int minPulgar = 200,  maxPulgar = 900;
+int minIndice = 200,  maxIndice = 900;
+int minMedio = 200,   maxMedio = 900;
+int minAnular = 200,  maxAnular = 900;
+int minMenique = 200, maxMenique = 900;
+int letras[27][5] = {
+//  pulgar;indice;medio;anular;meñique
+    {500,  1000, 1000, 1000, 1000}, // A 
+    {0,    1000, 1000, 1000, 1000}, // B 
+    {500,  500,  500,  500,  500},  // C 
+    {0,    0,    1000, 1000, 1000}, // D 
+    {1000, 1000, 1000, 1000, 1000}, // E 
+    {1000, 0,    1000, 1000, 1000}, // F 
+    {0,    0,    1000, 1000, 0},    // G  
+    {0,    0,    0,    1000, 1000}, // H  
+    {0,    1000, 1000, 1000, 0},    // I  
+    {0,    0,    0,    1000, 0},    // J 
+    {0,    0,    1000, 1000, 0},    // K  
+    {0,    0,    1000, 1000, 1000}, // L  
+    {1000, 0,    1000, 1000, 1000}, // M  
+    {1000, 0,    0,    1000, 1000}, // N  
+    {500,  500,  500,  500,  500},  // O 
+    {0,    0,    500,  1000, 1000}, // P  
+    {500,  0,    500,  1000, 1000}, // Q  
+    {0,    0,    0,    1000, 1000}, // R  
+    {1000, 1000, 1000, 1000, 1000}, // S  
+    {1000, 0,    1000, 1000, 1000}, // T  
+    {0,    0,    0,    0,    1000}, // U  
+    {0,    0,    0,    500,  500},  // V  
+    {0,    0,    0,    0,    0},    // W  
+    {1000, 0,    1000, 1000, 1000}, // X  
+    {0,    1000, 1000, 1000, 0},    // Y 
+    {0,    0,    1000, 1000, 1000}, // Z
+    {0,    0,    0,    1000, 1000}  // CH 
+};
+
+String abecedario[27] = {
+    "A","B","C","D","E","F","G","H","I","J","K",
+    "L","M","N","O","P","Q","R","S","T","U","V",
+    "W","X","Y","Z","CH"
+};
+
+String reconocerLetra() {
+    int sensores[5];
+    sensores[0] = map(analogRead(A0), minPulgar, maxPulgar, 0, 1000);
+    sensores[1] = map(analogRead(A1), minIndice, maxIndice, 0, 1000);
+    sensores[2] = map(analogRead(A2), minMedio, maxMedio, 0, 1000);
+    sensores[3] = map(analogRead(A3), minAnular, maxAnular, 0, 1000);
+    sensores[4] = map(analogRead(A4), minMenique, maxMenique, 0, 1000);
+
+    for (int i = 0; i < 27; i++) {
+        bool coincide = true;
+        for (int j = 0; j < 5; j++) {
+            if (abs(sensores[j] - letras[i][j]) > 100) { 
+                coincide = false;
+                break;
+            }
+        }
+        if (coincide) {
+            return abecedario[i]; 
+        }
+    }
+    return ""; 
+}
+bool confirmarOrientacion(String letra) {
+    int16_t ax, ay, az, gx, gy, gz;
+    mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+    int umbral = 10000; 
+
+    if (letra == "A" || letra == "E" || letra == "F" || letra == "I" || letra == "L" || letra == "R" || letra == "V" || letra == "W" || letra == "Y" || letra == "Z") {
+        return (ay > umbral);
+    }
+    else if (letra == "B" || letra == "C" || letra == "D" || letra == "H" || letra == "J" || letra == "O" || letra == "T") {
+        return (ay > umbral && ax > umbral);
+    }
+    else if (letra == "G" || letra == "K" || letra == "X") {
+        return (ax > umbral);
+    }
+    else if (letra == "P") {
+        return (ay < -umbral);
+    }
+    else if (letra == "M" || letra == "N" || letra == "Ñ" || letra == "Q") {
+        return (abs(ay) < 5000 && abs(ax) < 5000); 
+    }
+    return true; 
+}
+bool confirmarHola(){
+    
+}
+void setup() {
+    Serial.begin(9600);
+    Wire.begin();
+    mpu.initialize();
+    
+    if (!mpu.testConnection()) {
+        Serial.println("Error: MPU6050 no conectado correctamente.");
+    }
+}
+
+void loop() {
+    String letraDetectada = reconocerLetra();
+    if (letraDetectada != "") {
+      if (confirmarOrientacion(letraDetectada)) {
+        Serial.print("Letra Confirmada: ");
+        Serial.println(letraDetectada);
+        delay(1000); 
+        }
+    }
+    
+}
