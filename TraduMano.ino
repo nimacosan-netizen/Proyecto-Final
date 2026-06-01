@@ -9,22 +9,22 @@ int minMenique = 200, maxMenique = 900;
 int letras[27][5] = {
 //  pulgar;indice;medio;anular;meñique
     {500,  1000, 1000, 1000, 1000}, // A 
-    {0,    1000, 1000, 1000, 1000}, // B 
+    {0, 0, 0, 0, 0}, // B 
     {500,  500,  500,  500,  500},  // C 
-    {0,    0,    1000, 1000, 1000}, // D 
+    {500, 0, 500, 500, 500}, // D 
     {1000, 1000, 1000, 1000, 1000}, // E 
-    {1000, 0,    1000, 1000, 1000}, // F 
-    {0,    0,    1000, 1000, 0},    // G  
-    {0,    0,    0,    1000, 1000}, // H  
-    {0,    1000, 1000, 1000, 0},    // I  
-    {0,    0,    0,    1000, 0},    // J 
-    {0,    0,    1000, 1000, 0},    // K  
-    {0,    0,    1000, 1000, 1000}, // L  
-    {1000, 0,    1000, 1000, 1000}, // M  
-    {1000, 0,    0,    1000, 1000}, // N  
+    {0, 0, 1000, 1000, 1000}, // F 
+    {1000, 500, 1000, 1000, 1000},    // G  
+    {0, 0,  0, 1000, 1000}, // H  
+    {0, 1000, 1000, 1000, 0},    // I  
+    {1000, 1000, 1000, 1000, 0},    // J 
+    {0, 0, 0, 1000, 1000},    // K  
+    {0, 0, 1000, 1000, 1000}, // L  
+    {0, 0, 0, 0, 1000}, // M  
+    {1000, 0, 0, 1000, 1000}, // N  
     {500,  500,  500,  500,  500},  // O 
     {0,    0,    500,  1000, 1000}, // P  
-    {500,  0,    500,  1000, 1000}, // Q  
+    {500,  0,    500,  500, 500}, // Q  
     {0,    0,    0,    1000, 1000}, // R  
     {1000, 1000, 1000, 1000, 1000}, // S  
     {1000, 0,    1000, 1000, 1000}, // T  
@@ -42,7 +42,6 @@ String abecedario[27] = {
     "L","M","N","O","P","Q","R","S","T","U","V",
     "W","X","Y","Z","CH"
 };
-
 String reconocerLetra() {
     int sensores[5];
     sensores[0] = map(analogRead(A0), minPulgar, maxPulgar, 0, 1000);
@@ -70,13 +69,29 @@ bool confirmarOrientacion(String letra) {
     mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
     int umbral = 10000; 
 
-    if (letra == "A" || letra == "E" || letra == "F" || letra == "I" || letra == "L" || letra == "R" || letra == "V" || letra == "W" || letra == "Y" || letra == "Z") {
+    if (letra == "A" || letra == "E" || letra == "F" || letra == "I" || letra == "L" || letra == "R" || letra == "V" || letra == "W" || letra == "Y" || letra == "Z") 
+    {
         return (ay > umbral);
     }
-    else if (letra == "B" || letra == "C" || letra == "D" || letra == "H" || letra == "J" || letra == "O" || letra == "T") {
+    else if (letra == "B" || letra == "C" || letra == "D" || letra == "O" || letra == "T") {
         return (ay > umbral && ax > umbral);
     }
-    else if (letra == "G" || letra == "K" || letra == "X") {
+    else if (letra == "J") {
+    int16_t ax, ay, az, gx, gy, gz;
+    mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+    return (abs(gz) > 8000);
+    }   
+    else if (letra == "H") {
+        int16_t ax, ay, az, gx, gy, gz;
+        mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+        return (ay < -umbral && gz < -5000);
+    }
+    else if (letra == "G") {
+    int16_t ax, ay, az, gx, gy, gz;
+    mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+    return (ax > umbral && abs(gx) > 5000 && abs(gy) > 5000);
+    }
+    else if (letra == "K" || letra == "X") {
         return (ax > umbral);
     }
     else if (letra == "P") {
@@ -85,10 +100,21 @@ bool confirmarOrientacion(String letra) {
     else if (letra == "M" || letra == "N" || letra == "Ñ" || letra == "Q") {
         return (abs(ay) < 5000 && abs(ax) < 5000); 
     }
-    return true; 
 }
 bool confirmarHola(){
-    
+    int indice = map(analogRead(A1), minIndice, maxIndice, 0, 1000);
+    int pulgar = map(analogRead(A0), minPulgar, maxPulgar, 0, 1000);
+    int medio  = map(analogRead(A2), minMedio,  maxMedio,  0, 1000);
+    int anular = map(analogRead(A3), minAnular, maxAnular, 0, 1000);
+    int menique= map(analogRead(A4), minMenique,maxMenique,0, 1000);
+
+    int16_t ax, ay, az, gx, gy, gz;
+    mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+    bool dedosCorrectos = (indice < 300 && pulgar > 700 && medio > 700 && anular > 700 && menique > 700);
+    // Movimiento hacia adelante
+    bool movimientoCorrecto = (gx > 5000);
+
+    return (dedosCorrectos && movimientoCorrecto);
 }
 void setup() {
     Serial.begin(9600);
@@ -99,15 +125,19 @@ void setup() {
         Serial.println("Error: MPU6050 no conectado correctamente.");
     }
 }
-
 void loop() {
-    String letraDetectada = reconocerLetra();
-    if (letraDetectada != "") {
-      if (confirmarOrientacion(letraDetectada)) {
-        Serial.print("Letra Confirmada: ");
-        Serial.println(letraDetectada);
-        delay(1000); 
+    if (confirmarHola()) {
+        Serial.println("HOLA");
+        delay(2000);
+    } 
+    else {
+        String letraDetectada = reconocerLetra();
+        if (letraDetectada != "") {
+            if (confirmarOrientacion(letraDetectada)) {
+                Serial.print("Letra Confirmada: ");
+                Serial.println(letraDetectada);
+                delay(1000);
+            }
         }
     }
-    
 }
