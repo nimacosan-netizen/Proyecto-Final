@@ -42,6 +42,7 @@ String abecedario[27] = {
     "L","M","N","O","P","Q","R","S","T","U","V",
     "W","X","Y","Z","CH"
 };
+
 String reconocerLetra() {
     int sensores[5];
     sensores[0] = map(analogRead(A0), minPulgar, maxPulgar, 0, 1000);
@@ -69,8 +70,7 @@ bool confirmarOrientacion(String letra) {
     mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
     int umbral = 10000; 
 
-    if (letra == "A" || letra == "E" || letra == "F" || letra == "I" || letra == "L" || letra == "R" || letra == "V" || letra == "W" || letra == "Y" || letra == "Z") 
-    {
+    if (letra == "A" || letra == "E" || letra == "F" || letra == "I" || letra == "L" || letra == "R" || letra == "V" || letra == "W" || letra == "Y" || letra == "Z") {
         return (ay > umbral);
     }
     else if (letra == "B" || letra == "C" || letra == "D" || letra == "O" || letra == "T") {
@@ -116,6 +116,76 @@ bool confirmarHola(){
 
     return (dedosCorrectos && movimientoCorrecto);
 }
+bool detectarPorFavor(){
+    int pulgar = map(analogRead(A0), minPulgar, maxPulgar, 0, 1000);
+    int indice = map(analogRead(A1), minIndice, maxIndice, 0, 1000);
+    int medio  = map(analogRead(A2), minMedio,  maxMedio,  0, 1000);
+    int anular = map(analogRead(A3), minAnular, maxAnular, 0, 1000);
+    int menique= map(analogRead(A4), minMenique,maxMenique,0, 1000);
+
+    int16_t ax, ay, az, gx, gy, gz;
+    mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+
+    bool dedosCorrectos = (pulgar > 700 && indice > 700 && medio > 700 && anular > 700 && menique > 700);
+    bool movimientoCorrecto = (abs(gx) > 5000 && abs(gy) > 5000);
+    return (dedosCorrectos && movimientoCorrecto);
+}
+bool detectarConGusto(){
+    int pulgar = map(analogRead(A0), minPulgar, maxPulgar, 0, 1000);
+    int indice = map(analogRead(A1), minIndice, maxIndice, 0, 1000);
+    int medio  = map(analogRead(A2), minMedio,  maxMedio,  0, 1000);
+    int anular = map(analogRead(A3), minAnular, maxAnular, 0, 1000);
+    int menique= map(analogRead(A4), minMenique,maxMenique,0, 1000);
+
+    int16_t ax, ay, az, gx, gy, gz;
+    mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+
+    bool dedosCorrectos = (pulgar < 300 && indice < 300 && medio < 300 && anular < 300 && menique < 300);
+    bool movimientoCorrecto = (gx > 5000);
+    return (dedosCorrectos && movimientoCorrecto);
+}
+bool detectarChao(){
+    int pulgar = map(analogRead(A0), minPulgar, maxPulgar, 0, 1000);
+    int indice = map(analogRead(A1), minIndice, maxIndice, 0, 1000);
+    int medio  = map(analogRead(A2), minMedio,  maxMedio,  0, 1000);
+    int anular = map(analogRead(A3), minAnular, maxAnular, 0, 1000);
+    int menique= map(analogRead(A4), minMenique,maxMenique,0, 1000);
+
+    int16_t ax, ay, az, gx, gy, gz;
+    mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+
+    bool dedosCorrectos = (pulgar < 300 && indice < 300 && medio < 300 && anular < 300 && menique < 300);
+    bool movimientoCorrecto = (abs(gy) > 5000);
+    return (dedosCorrectos && movimientoCorrecto);
+}
+bool detectarPerdon(){
+    int pulgar = map(analogRead(A0), minPulgar, maxPulgar, 0, 1000);
+    int indice = map(analogRead(A1), minIndice, maxIndice, 0, 1000);
+    int medio  = map(analogRead(A2), minMedio,  maxMedio,  0, 1000);
+    int anular = map(analogRead(A3), minAnular, maxAnular, 0, 1000);
+    int menique= map(analogRead(A4), minMenique,maxMenique,0, 1000);
+
+    int16_t ax, ay, az, gx, gy, gz;
+    mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+
+    bool dedosCorrectos = (pulgar < 300 && menique < 300 && indice > 700 && medio > 700 && anular > 700);
+    bool orientacionCorrecta = (ay < -umbral);
+    return (dedosCorrectos && orientacionCorrecta);
+}
+bool detectarTeAmo(){
+    int pulgar = map(analogRead(A0), minPulgar, maxPulgar, 0, 1000);
+    int indice = map(analogRead(A1), minIndice, maxIndice, 0, 1000);
+    int medio  = map(analogRead(A2), minMedio,  maxMedio,  0, 1000);
+    int anular = map(analogRead(A3), minAnular, maxAnular, 0, 1000);
+    int menique= map(analogRead(A4), minMenique,maxMenique,0, 1000);
+
+    int16_t ax, ay, az, gx, gy, gz;
+    mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+
+    bool dedosCorrectos = (pulgar < 300 && indice < 300 && medio > 700 && anular > 700 && menique < 300);
+    bool movimientoCorrecto = (gx > 5000 && ay > 10000);
+    return (dedosCorrectos && movimientoCorrecto);
+}
 void setup() {
     Serial.begin(9600);
     Wire.begin();
@@ -130,6 +200,22 @@ void loop() {
         Serial.println("HOLA");
         delay(2000);
     } 
+    else if (detectarChao()) {
+    Serial.println("CHAO");
+    delay(2000);
+    }
+    else if(detectarConGusto()){
+        Serial.println("Con Gusto");
+        delay(2000);
+    }
+    else if(detectarPorFavor()){
+        Serial.println("Con Gusto");
+        delay(2000);
+    }
+    else if(detectarPerdon()){
+        Serial.println("Perdon");
+        delay(2000);
+    }
     else {
         String letraDetectada = reconocerLetra();
         if (letraDetectada != "") {
