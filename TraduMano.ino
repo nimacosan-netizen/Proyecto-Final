@@ -111,7 +111,6 @@ bool confirmarHola(){
     int16_t ax, ay, az, gx, gy, gz;
     mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
     bool dedosCorrectos = (indice < 300 && pulgar > 700 && medio > 700 && anular > 700 && menique > 700);
-    // Movimiento hacia adelante
     bool movimientoCorrecto = (gx > 5000);
 
     return (dedosCorrectos && movimientoCorrecto);
