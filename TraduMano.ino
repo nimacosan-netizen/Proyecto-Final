@@ -215,6 +215,10 @@ void loop() {
         Serial.println("Perdon");
         delay(2000);
     }
+    else if(detectarTeAmo()){
+        Serial.println("Te Amo");
+        delay(2000);
+    }
     else {
         String letraDetectada = reconocerLetra();
         if (letraDetectada != "") {
