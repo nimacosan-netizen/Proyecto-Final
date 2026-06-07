@@ -1,11 +1,11 @@
 #include <Wire.h>
 #include <MPU6050.h>
 MPU6050 mpu;
-int minPulgar = 200,  maxPulgar = 900;
-int minIndice = 200,  maxIndice = 900;
-int minMedio = 200,   maxMedio = 900;
-int minAnular = 200,  maxAnular = 900;
-int minMenique = 200, maxMenique = 900;
+int minPulgar = 0,  maxPulgar = 1023;
+int minIndice = 0,  maxIndice = 1023;
+int minMedio = 0,   maxMedio = 1023;
+int minAnular = 0,  maxAnular = 1023;
+int minMenique = 0, maxMenique = 1023;
 int letras[27][5] = {
 //  pulgar;indice;medio;anular;meñique
     {500,  1000, 1000, 1000, 1000}, // A 
@@ -68,7 +68,7 @@ String reconocerLetra() {
 bool confirmarOrientacion(String letra) {
     int16_t ax, ay, az, gx, gy, gz;
     mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-    int umbral = 10000; 
+    int umbral = 5000; 
 
     if (letra == "A" || letra == "E" || letra == "F" || letra == "I" || letra == "L" || letra == "R" || letra == "V" || letra == "W" || letra == "Y" || letra == "Z") {
         return (ay > umbral);
@@ -168,7 +168,7 @@ bool detectarPerdon(){
     mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
 
     bool dedosCorrectos = (pulgar < 300 && menique < 300 && indice > 700 && medio > 700 && anular > 700);
-    bool orientacionCorrecta = (ay < -umbral);
+    bool orientacionCorrecta = (ay < -10000);
     return (dedosCorrectos && orientacionCorrecta);
 }
 bool detectarTeAmo(){
@@ -195,6 +195,19 @@ void setup() {
     }
 }
 void loop() {
+   int16_t ax, ay, az, gx, gy, gz;
+  mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+  
+  Serial.print("ay: "); Serial.println(ay);
+  Serial.print("A0: "); Serial.println(analogRead(A0));
+  Serial.print("A1: "); Serial.println(analogRead(A1));
+  Serial.print("A2: "); Serial.println(analogRead(A2));
+  Serial.print("A3: "); Serial.println(analogRead(A3));
+  Serial.print("A4: "); Serial.println(analogRead(A4));
+  Serial.println("---");
+  delay(1000);
+  Serial.println("loop corriendo...");
+  delay(500);
     if (confirmarHola()) {
         Serial.println("HOLA");
         delay(2000);
@@ -208,7 +221,7 @@ void loop() {
         delay(2000);
     }
     else if(detectarPorFavor()){
-        Serial.println("Con Gusto");
+        Serial.println("Por Favor");
         delay(2000);
     }
     else if(detectarPerdon()){
@@ -228,5 +241,6 @@ void loop() {
                 delay(1000);
             }
         }
+    }
     }
 }
