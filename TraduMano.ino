@@ -1,11 +1,11 @@
 #include <Wire.h>
 #include <MPU6050.h>
 MPU6050 mpu;
-int minPulgar = 0,  maxPulgar = 1023;
-int minIndice = 0,  maxIndice = 1023;
-int minMedio = 0,   maxMedio = 1023;
-int minAnular = 0,  maxAnular = 1023;
-int minMenique = 0, maxMenique = 1023;
+int minPulgar = 1,  maxPulgar = 1023;
+int minIndice = 1,  maxIndice = 1023;
+int minMedio = 1,   maxMedio = 1023;
+int minAnular = 1,  maxAnular = 1023;
+int minMenique = 1, maxMenique = 1023;
 int letras[27][5] = {
 //  pulgar;indice;medio;anular;meñique
     {500,  1000, 1000, 1000, 1000}, // A 
@@ -52,14 +52,14 @@ String reconocerLetra() {
     sensores[4] = map(analogRead(A4), minMenique, maxMenique, 0, 1000);
 
     for (int i = 0; i < 27; i++) {
-        bool coincide = true;
+        bool coincidir = true;
         for (int j = 0; j < 5; j++) {
             if (abs(sensores[j] - letras[i][j]) > 100) { 
-                coincide = false;
+                coincidir = false;
                 break;
             }
         }
-        if (coincide) {
+        if (coincidir) {
             return abecedario[i]; 
         }
     }
@@ -68,7 +68,7 @@ String reconocerLetra() {
 bool confirmarOrientacion(String letra) {
     int16_t ax, ay, az, gx, gy, gz;
     mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-    int umbral = 5000; 
+    int umbral = 10000; 
 
     if (letra == "A" || letra == "E" || letra == "F" || letra == "I" || letra == "L" || letra == "R" || letra == "V" || letra == "W" || letra == "Y" || letra == "Z") {
         return (ay > umbral);
@@ -110,7 +110,7 @@ bool confirmarHola(){
 
     int16_t ax, ay, az, gx, gy, gz;
     mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-    bool dedosCorrectos = (indice < 300 && pulgar > 700 && medio > 700 && anular > 700 && menique > 700);
+    bool dedosCorrectos = (indice < 300 && pulgar > 700 && medio < 300 && anular > 700 && menique > 700);
     bool movimientoCorrecto = (gx > 5000);
 
     return (dedosCorrectos && movimientoCorrecto);
@@ -154,7 +154,7 @@ bool detectarChao(){
     mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
 
     bool dedosCorrectos = (pulgar < 300 && indice < 300 && medio < 300 && anular < 300 && menique < 300);
-    bool movimientoCorrecto = (abs(gy) > 5000);
+    bool movimientoCorrecto = (abs(gy) > 5000 && ay > 10000);
     return (dedosCorrectos && movimientoCorrecto);
 }
 bool detectarPerdon(){
